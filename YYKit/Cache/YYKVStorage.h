@@ -18,11 +18,17 @@ NS_ASSUME_NONNULL_BEGIN
  Typically, you should not use this class directly.
  */
 @interface YYKVStorageItem : NSObject
+//键
 @property (nonatomic, strong) NSString *key;                ///< key
+//值
 @property (nonatomic, strong) NSData *value;                ///< value
+//文件名
 @property (nullable, nonatomic, strong) NSString *filename; ///< filename (nil if inline)
+//值得大小，单位是byte
 @property (nonatomic) int size;                             ///< value's size in bytes
+//修改时间戳
 @property (nonatomic) int modTime;                          ///< modification unix timestamp
+//最后访问的时间戳
 @property (nonatomic) int accessTime;                       ///< last access unix timestamp
 @property (nullable, nonatomic, strong) NSData *extendedData; ///< extended data (nil if no extended data)
 @end
@@ -125,6 +131,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param item  An item.
  @return Whether succeed.
  */
+//写入某个item
 - (BOOL)saveItem:(YYKVStorageItem *)item;
 
 /**
@@ -137,6 +144,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param value The key, should not be empty (nil or zero length).
  @return Whether succeed.
  */
+//写入某个键值对，值为NSData对象
 - (BOOL)saveItemWithKey:(NSString *)key value:(NSData *)value;
 
 /**
@@ -155,6 +163,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  
  @return Whether succeed.
  */
+//写入某个键值对，包括文件名以及data信息
 - (BOOL)saveItemWithKey:(NSString *)key
                   value:(NSData *)value
                filename:(nullable NSString *)filename
@@ -171,6 +180,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param key The item's key.
  @return Whether succeed.
  */
+//移除某个键的item
 - (BOOL)removeItemForKey:(NSString *)key;
 
 /**
@@ -180,6 +190,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  
  @return Whether succeed.
  */
+//移除多个键的item
 - (BOOL)removeItemForKeys:(NSArray<NSString *> *)keys;
 
 /**
@@ -188,6 +199,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param size  The maximum size in bytes.
  @return Whether succeed.
  */
+//移除大于参数size的item
 - (BOOL)removeItemsLargerThanSize:(int)size;
 
 /**
@@ -196,6 +208,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param time  The specified unix timestamp.
  @return Whether succeed.
  */
+//移除时间早于参数时间的item
 - (BOOL)removeItemsEarlierThanTime:(int)time;
 
 /**
@@ -205,6 +218,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param maxSize The specified size in bytes.
  @return Whether succeed.
  */
+//移除item，使得缓存总容量小于参数size
 - (BOOL)removeItemsToFitSize:(int)maxSize;
 
 /**
@@ -214,6 +228,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param maxCount The specified item count.
  @return Whether succeed.
  */
+//移除item，使得缓存数量小于参数size
 - (BOOL)removeItemsToFitCount:(int)maxCount;
 
 /**
@@ -225,6 +240,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  
  @return Whether succeed.
  */
+//移除所有的item
 - (BOOL)removeAllItems;
 
 /**
@@ -234,6 +250,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param progress This block will be invoked during removing, pass nil to ignore.
  @param end      This block will be invoked at the end, pass nil to ignore.
  */
+//移除所有的item，附带进度与结束block
 - (void)removeAllItemsWithProgressBlock:(nullable void(^)(int removedCount, int totalCount))progress
                                endBlock:(nullable void(^)(BOOL error))end;
 
@@ -249,6 +266,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param key A specified key.
  @return Item for the key, or nil if not exists / error occurs.
  */
+//读取参数key对应的item
 - (nullable YYKVStorageItem *)getItemForKey:(NSString *)key;
 
 /**
@@ -266,6 +284,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param key  A specified key.
  @return Item's value, or nil if not exists / error occurs.
  */
+//读取参数key对应的data
 - (nullable NSData *)getItemValueForKey:(NSString *)key;
 
 /**
@@ -274,6 +293,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @param keys  An array of specified keys.
  @return An array of `YYKVStorageItem`, or nil if not exists / error occurs.
  */
+//读取参数数组对应的item数组
 - (nullable NSArray<YYKVStorageItem *> *)getItemForKeys:(NSArray<NSString *> *)keys;
 
 /**
@@ -292,6 +312,7 @@ typedef NS_ENUM(NSUInteger, YYKVStorageType) {
  @return A dictionary which key is 'key' and value is 'value', or nil if not 
     exists / error occurs.
  */
+//读取参数数组对应的item字典
 - (nullable NSDictionary<NSString *, NSData *> *)getItemValueForKeys:(NSArray<NSString *> *)keys;
 
 #pragma mark - Get Storage Status

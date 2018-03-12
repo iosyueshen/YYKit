@@ -269,12 +269,14 @@ static void _YYDiskCacheSetGlobal(YYDiskCache *cache) {
     if (!value) return;
     NSString *filename = nil;
     if (_kv.type != YYKVStorageTypeSQLite) {
+        //如果长度大临界值，则生成文件名称，使得filename不为nil
         if (value.length > _inlineThreshold) {
             filename = [self _filenameForKey:key];
         }
     }
     
     Lock();
+    //在该方法内部判断filename是否为nil，如果是，则使用sqlite进行缓存；如果不是，则使用文件缓存
     [_kv saveItemWithKey:key value:value filename:filename extendedData:extendedData];
     Unlock();
 }

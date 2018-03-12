@@ -51,6 +51,7 @@
 }
 
 - (BOOL)containsObjectForKey:(NSString *)key {
+    //先检查内存缓存是否存在，再检查磁盘缓存是否存在
     return [_memoryCache containsObjectForKey:key] || [_diskCache containsObjectForKey:key];
 }
 
@@ -67,7 +68,11 @@
 }
 
 - (id<NSCoding>)objectForKey:(NSString *)key {
+    
+    //首先尝试获取内存缓存，然后获取磁盘缓存
     id<NSCoding> object = [_memoryCache objectForKey:key];
+    
+    //如果内存缓存不存在，就会去磁盘缓存里面找：如果找到了，则再次写入内存缓存中；如果没找到，则返回nil
     if (!object) {
         object = [_diskCache objectForKey:key];
         if (object) {
@@ -95,6 +100,7 @@
 }
 
 - (void)setObject:(id<NSCoding>)object forKey:(NSString *)key {
+    //先写入内存缓存，后写入磁盘缓存
     [_memoryCache setObject:object forKey:key];
     [_diskCache setObject:object forKey:key];
 }
@@ -105,6 +111,7 @@
 }
 
 - (void)removeObjectForKey:(NSString *)key {
+    //先移除内存缓存，后移除磁盘缓存
     [_memoryCache removeObjectForKey:key];
     [_diskCache removeObjectForKey:key];
 }
@@ -115,6 +122,7 @@
 }
 
 - (void)removeAllObjects {
+    //先全部移除内存缓存，后全部移除磁盘缓存
     [_memoryCache removeAllObjects];
     [_diskCache removeAllObjects];
 }

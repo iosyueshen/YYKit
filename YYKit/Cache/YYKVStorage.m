@@ -204,22 +204,39 @@ static NSString *const kTrashDirectoryName = @"trash";
     }
 }
 
+//数据库存储
 - (BOOL)_dbSaveWithKey:(NSString *)key value:(NSData *)value fileName:(NSString *)fileName extendedData:(NSData *)extendedData {
+    
+    //spl语句
     NSString *sql = @"insert or replace into manifest (key, filename, size, inline_data, modification_time, last_access_time, extended_data) values (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
     sqlite3_stmt *stmt = [self _dbPrepareStmt:sql];
     if (!stmt) return NO;
     
     int timestamp = (int)time(NULL);
+    
+    //key
     sqlite3_bind_text(stmt, 1, key.UTF8String, -1, NULL);
+    
+    //filename
     sqlite3_bind_text(stmt, 2, fileName.UTF8String, -1, NULL);
+    
+    //size
     sqlite3_bind_int(stmt, 3, (int)value.length);
+    
+    //inline_data
     if (fileName.length == 0) {
+        //如果文件名长度==0，则将value存入数据库
         sqlite3_bind_blob(stmt, 4, value.bytes, (int)value.length, 0);
     } else {
+        //如果文件名长度不为0，则不将value存入数据库
         sqlite3_bind_blob(stmt, 4, NULL, 0, 0);
     }
+    
+    //modification_time
     sqlite3_bind_int(stmt, 5, timestamp);
+    //last_access_time
     sqlite3_bind_int(stmt, 6, timestamp);
+    //extended_data
     sqlite3_bind_blob(stmt, 7, extendedData.bytes, (int)extendedData.length, 0);
     
     int result = sqlite3_step(stmt);
@@ -327,10 +344,14 @@ static NSString *const kTrashDirectoryName = @"trash";
 }
 
 - (YYKVStorageItem *)_dbGetItemFromStmt:(sqlite3_stmt *)stmt excludeInlineData:(BOOL)excludeInlineData {
+    
+    //提取数据
     int i = 0;
     char *key = (char *)sqlite3_column_text(stmt, i++);
     char *filename = (char *)sqlite3_column_text(stmt, i++);
     int size = sqlite3_column_int(stmt, i++);
+    
+    //判断excludeInlineData
     const void *inline_data = excludeInlineData ? NULL : sqlite3_column_blob(stmt, i);
     int inline_data_bytes = excludeInlineData ? 0 : sqlite3_column_bytes(stmt, i++);
     int modification_time = sqlite3_column_int(stmt, i++);
@@ -338,6 +359,7 @@ static NSString *const kTrashDirectoryName = @"trash";
     const void *extended_data = sqlite3_column_blob(stmt, i);
     int extended_data_bytes = sqlite3_column_bytes(stmt, i++);
     
+    //将数据赋给item的属性
     YYKVStorageItem *item = [YYKVStorageItem new];
     if (key) item.key = [NSString stringWithUTF8String:key];
     if (filename && *filename != 0) item.filename = [NSString stringWithUTF8String:filename];
@@ -358,6 +380,7 @@ static NSString *const kTrashDirectoryName = @"trash";
     YYKVStorageItem *item = nil;
     int result = sqlite3_step(stmt);
     if (result == SQLITE_ROW) {
+        //传入stmt来生成YYKVStorageItem实例
         item = [self _dbGetItemFromStmt:stmt excludeInlineData:excludeInlineData];
     } else {
         if (result != SQLITE_DONE) {
@@ -733,21 +756,32 @@ static NSString *const kTrashDirectoryName = @"trash";
     }
     
     if (filename.length) {
+        
+        //如果文件名不为空字符串，说明要进行文件缓存
         if (![self _fileWriteWithName:filename data:value]) {
             return NO;
         }
+        
+        //写入元数据
         if (![self _dbSaveWithKey:key value:value fileName:filename extendedData:extendedData]) {
+            //如果缓存信息保存失败，则删除对应的文件
             [self _fileDeleteWithName:filename];
             return NO;
         }
         return YES;
     } else {
+        
+        //如果文件名为空字符串，说明不要进行文件缓存
         if (_type != YYKVStorageTypeSQLite) {
+            
+            //如果缓存类型不是数据库缓存，则查找出相应的文件名并删除
             NSString *filename = [self _dbGetFilenameWithKey:key];
             if (filename) {
                 [self _fileDeleteWithName:filename];
             }
         }
+        
+        //缓存类型是数据库缓存，把元数据和value写入数据库
         return [self _dbSaveWithKey:key value:value fileName:nil extendedData:extendedData];
     }
 }
@@ -944,9 +978,12 @@ static NSString *const kTrashDirectoryName = @"trash";
     if (key.length == 0) return nil;
     YYKVStorageItem *item = [self _dbGetItemWithKey:key excludeInlineData:NO];
     if (item) {
+        //更新内存访问的时间
         [self _dbUpdateAccessTimeWithKey:key];
         if (item.filename) {
+            //如果有文件名，则尝试获取文件数据
             item.value = [self _fileReadWithName:item.filename];
+            //如果此时获取文件数据失败，则删除对应的item
             if (!item.value) {
                 [self _dbDeleteItemWithKey:key];
                 item = nil;

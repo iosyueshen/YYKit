@@ -25,13 +25,13 @@ NS_ASSUME_NONNULL_BEGIN
 @interface YYCache : NSObject
 
 /** The name of the cache, readonly. */
-@property (copy, readonly) NSString *name;
+@property (copy, readonly) NSString *name; //缓存名称
 
 /** The underlying memory cache. see `YYMemoryCache` for more information.*/
-@property (strong, readonly) YYMemoryCache *memoryCache;
+@property (strong, readonly) YYMemoryCache *memoryCache; //内存缓存
 
 /** The underlying disk cache. see `YYDiskCache` for more information.*/
-@property (strong, readonly) YYDiskCache *diskCache;
+@property (strong, readonly) YYDiskCache *diskCache; //磁盘缓存
 
 /**
  Create a new instance with the specified name.
@@ -92,6 +92,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param key A string identifying the value. If nil, just return NO.
  @return Whether the key is in cache.
  */
+//是否包含某缓存，无回调
 - (BOOL)containsObjectForKey:(NSString *)key;
 
 /**
@@ -102,6 +103,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param key   A string identifying the value. If nil, just return NO.
  @param block A block which will be invoked in background queue when finished.
  */
+//是否包含某缓存，有回调
 - (void)containsObjectForKey:(NSString *)key withBlock:(nullable void(^)(NSString *key, BOOL contains))block;
 
 /**
@@ -111,6 +113,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param key A string identifying the value. If nil, just return nil.
  @return The value associated with key, or nil if no value is associated with key.
  */
+//获取缓存对象，无回调
 - (nullable id<NSCoding>)objectForKey:(NSString *)key;
 
 /**
@@ -121,6 +124,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param key A string identifying the value. If nil, just return nil.
  @param block A block which will be invoked in background queue when finished.
  */
+//获取缓存对象，有回调
 - (void)objectForKey:(NSString *)key withBlock:(nullable void(^)(NSString *key, id<NSCoding> object))block;
 
 /**
@@ -130,6 +134,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param object The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
  @param key    The key with which to associate the value. If nil, this method has no effect.
  */
+//写入缓存对象，无回调
 - (void)setObject:(nullable id<NSCoding>)object forKey:(NSString *)key;
 
 /**
@@ -140,6 +145,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param object The object to be stored in the cache. If nil, it calls `removeObjectForKey:`.
  @param block  A block which will be invoked in background queue when finished.
  */
+//写入缓存对象，有回调
 - (void)setObject:(nullable id<NSCoding>)object forKey:(NSString *)key withBlock:(nullable void(^)(void))block;
 
 /**
@@ -148,6 +154,7 @@ NS_ASSUME_NONNULL_BEGIN
  
  @param key The key identifying the value to be removed. If nil, this method has no effect.
  */
+//移除某缓存，无回调
 - (void)removeObjectForKey:(NSString *)key;
 
 /**
@@ -158,12 +165,14 @@ NS_ASSUME_NONNULL_BEGIN
  @param key The key identifying the value to be removed. If nil, this method has no effect.
  @param block  A block which will be invoked in background queue when finished.
  */
+//移除某缓存，有回调
 - (void)removeObjectForKey:(NSString *)key withBlock:(nullable void(^)(NSString *key))block;
 
 /**
  Empties the cache.
  This method may blocks the calling thread until file delete finished.
  */
+//移除所有缓存，无回调
 - (void)removeAllObjects;
 
 /**
@@ -173,6 +182,7 @@ NS_ASSUME_NONNULL_BEGIN
  
  @param block  A block which will be invoked in background queue when finished.
  */
+//移除所有缓存，有回调
 - (void)removeAllObjectsWithBlock:(void(^)(void))block;
 
 /**
@@ -183,6 +193,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param progress This block will be invoked during removing, pass nil to ignore.
  @param end      This block will be invoked at the end, pass nil to ignore.
  */
+//移除所有缓存，有进度和完成的回调
 - (void)removeAllObjectsWithProgressBlock:(nullable void(^)(int removedCount, int totalCount))progress
                                  endBlock:(nullable void(^)(BOOL error))end;
 
